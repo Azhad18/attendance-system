@@ -2,15 +2,44 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Logging in with:", { email, password });
-  };
+  const supabase = createClient();
+  const router = useRouter();
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+
+  // Kita cari terus dalam table 'employee'
+  const { data, error } = await supabase
+    .from("employee")
+    .select("*")
+    .eq("email", email)
+    .eq("password", password) // Ini semak password teks biasa
+    .single(); // Kita nak satu result sahaja
+
+  if (error || !data) {
+    // Jika tak jumpa atau ada error
+    alert("Email atau Password salah!");
+    setIsLoading(false);
+  } else {
+    // Jika jumpa, maksudnya login berjaya
+    console.log("Data pekerja:", data);
+    alert(`Selamat kembali, ${data.name}!`);
+    
+    // Simpan nama dalam LocalStorage supaya senang nak guna kat page lain nanti
+    localStorage.setItem("user_name", data.name);
+    
+    router.push("/dashboard");
+  }
+};
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black p-6">
@@ -55,17 +84,6 @@ export default function Home() {
           </div>
 
           <div className="space-y-2">
-            {/* <div className="flex items-center justify-between">
-              <label 
-                htmlFor="password" 
-                className="text-sm font-medium leading-none text-zinc-700 dark:text-zinc-300"
-              >
-                Password
-              </label>
-              <a href="#" className="text-xs text-zinc-500 hover:underline">
-                Forgot password?
-              </a>
-            </div> */}
             <input
               id="password"
               type="password"
@@ -79,6 +97,7 @@ export default function Home() {
 
           <button
             type="submit"
+            disabled={isLoading}
             className="flex h-10 w-full items-center justify-center rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
           >
             Sign In

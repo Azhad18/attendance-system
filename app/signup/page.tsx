@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export default function SignUp() {
+  const supabase = createClient();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -15,14 +17,39 @@ export default function SignUp() {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-    console.log("Registering user:", formData);
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match!");
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("employee")
+    .insert([
+      {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      },
+    ]);
+
+  if (error) {
+    console.log(error);
+    alert("Failed to create account");
+  } else {
+    console.log(data);
+    alert("Account created successfully!");
+
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+  }
+};
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black p-6">
