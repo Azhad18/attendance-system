@@ -17,44 +17,58 @@ export default function SignUp() {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match!");
-    return;
-  }
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
 
-  const { data, error } = await supabase
-    .from("employee")
-    .insert([
+    const { data: existingUser, error: checkError } = await supabase
+      .from("employee")
+      .select("staff_email")
+      .eq("staff_email", formData.email)
+      .single();
+
+    if (existingUser) {
+      alert("Email sudah wujud!");
+      return;
+    }
+
+    if (checkError && checkError.code !== "PGRST116") {
+      console.log(checkError);
+      alert("Error checking email");
+      return;
+    }
+
+    const { data, error } = await supabase.from("employee").insert([
       {
-        name: formData.name,
-        email: formData.email,
+        staff_name: formData.name,
+        staff_email: formData.email,
         password: formData.password,
       },
     ]);
 
-  if (error) {
-    console.log(error);
-    alert("Failed to create account");
-  } else {
-    console.log(data);
-    alert("Account created successfully!");
+    if (error) {
+      console.log(error);
+      alert("Failed to create account");
+    } else {
+      console.log(data);
+      alert("Account created successfully!");
 
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-    });
-  }
-};
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black p-6">
       <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800">
-        
         {/* Header */}
         <div className="flex flex-col items-center gap-2 text-center">
           <Image
@@ -76,7 +90,10 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="name"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Full Name
             </label>
             <input
@@ -91,7 +108,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="email"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Email address
             </label>
             <input
@@ -106,7 +126,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Password
             </label>
             <input
@@ -121,7 +144,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
               Confirm Password
             </label>
             <input
@@ -145,7 +171,10 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <div className="text-center text-sm text-zinc-500">
           Already have an account?{" "}
-          <a href="/login" className="font-medium text-black underline-offset-4 hover:underline dark:text-white">
+          <a
+            href="/login"
+            className="font-medium text-black underline-offset-4 hover:underline dark:text-white"
+          >
             Log in
           </a>
         </div>

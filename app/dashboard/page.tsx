@@ -1,81 +1,216 @@
-import { createClient } from "@/utils/supabase/server";
+"use client";
+
+import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-export default async function Page() {
-  const supabase = await createClient();
+export default function Page() {
+  const supabase = createClient();
 
-  const { data: employee, error } = await supabase
-    .from("employee")
-    .select("*")
-    .eq("id", 3)
-    .single(); // Kita ambil data pekerja dengan id 1 untuk contoh
+  const [employee, setEmployee] = useState<any>(null);
 
-  console.log("DATA:", employee);
-  console.log("ERROR:", error);
+  const [showMenu, setShowMenu] = useState(false);
+  const handleLogout = () => {
+    localStorage.removeItem("id");
+
+    window.location.href = "/login";
+  };
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      const userId = localStorage.getItem("id");
+
+      if (!userId) return;
+
+      const { data } = await supabase
+        .from("employee")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (data) {
+        setEmployee(data);
+      }
+    };
+
+    fetchEmployee();
+  }, []);
+
+  if (!employee) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-gray-900 text-white p-5 flex flex-col items-center">
-        <div>
-          <Image
-            className="mb-4"
-            src="/logo_amber.png"
-            alt="Amber Coffee logo"
-            width={200}
-            height={200}
-            priority
-          />
-        </div>
-        <ul className="space-y-4 mt-15">
+        <Image
+          className="mb-4"
+          src="/logo_amber.png"
+          alt="Amber Coffee logo"
+          width={200}
+          height={200}
+          priority
+        />
+
+        <ul className="space-y-4 mt-10">
           <li>
             <Link href="/dashboard" className="hover:text-gray-300">
-              Home
+              Dashboard
             </Link>
           </li>
 
           <li>
-            <Link href="/dashboard/employee" className="hover:text-gray-300">
-              attendance
+            <Link href="/attendance" className="hover:text-gray-300">
+              Attendance
             </Link>
           </li>
         </ul>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 bg-gray-100">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Welcome Azhad</h1>
+      <div className="flex-1 p-8">
+        {/* Top Navbar */}
+        <div className="flex justify-end items-center mb-6 relative">
+          <button
+            onClick={() => setShowMenu(!showMenu)}
+            className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow hover:bg-gray-50"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold">
+              {employee.staff_name.charAt(0).toUpperCase()}
+            </div>
 
-        {/* Profile Card */}
-        <div className="bg-white p-6 rounded-2xl shadow flex items-center gap-6">
-          {/* Profile Image */}
-          <div className="w-40 h-40 relative">
-            <Image
-              src="/profile_azhad.jpeg"
-              alt="profile picture"
-              fill
-              className="rounded-full object-cover border-4 border-gray-300"
-              priority
-            />
-          </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-gray-800">
+                {employee.staff_name}
+              </p>
 
-          {/* Profile Details */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                {employee.staff_name.toUpperCase()}
-              </h2>
-              <div className="mt-2">
-                <p className="text-gray-600">{employee.staff_name}</p>
-                <p className="text-gray-600">{employee.staff_email}</p>
-                <p className="text-gray-600">{employee.staff_phoneNum}</p>
-                <p className="text-gray-600">{employee.staff_role.toUpperCase()}</p>
-              </div>
+              <p className="text-xs text-gray-500">{employee.staff_role}</p>
+            </div>
+          </button>
 
-              <button className="mt-4 bg-gray-900 text-white px-5 py-2 rounded-lg hover:bg-gray-700">
-                Edit Profile
+          {/* Dropdown */}
+          {showMenu && (
+            <div className="absolute top-16 right-0 w-48 bg-white rounded-xl shadow-lg border">
+              <Link
+                href="/profile"
+                className="block px-4 py-3 hover:bg-gray-100 text-sm text-gray-700"
+              >
+                👤 Profile Details
+              </Link>
+
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-3 hover:bg-gray-100 text-sm text-red-500"
+              >
+                🚪 Logout
               </button>
             </div>
+          )}
+        </div>
+        {/* Welcome */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Welcome, {employee.staff_name}
+          </h1>
+
+          <p className="text-gray-500 mt-2">Here is today sales overview.</p>
+        </div>
+
+        {/* Sales Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total Sales */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-gray-500 text-sm">Total Sales</p>
+
+            <h2 className="text-3xl font-bold mt-2 text-green-600">
+              RM 12,450
+            </h2>
+
+            <p className="text-sm text-green-500 mt-2">+12% from yesterday</p>
+          </div>
+
+          {/* Orders */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-gray-500 text-sm">Total Orders</p>
+
+            <h2 className="text-3xl font-bold mt-2 text-blue-600">320</h2>
+
+            <p className="text-sm text-blue-500 mt-2">+20 new orders</p>
+          </div>
+
+          {/* Customers */}
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-gray-500 text-sm">Customers</p>
+
+            <h2 className="text-3xl font-bold mt-2 text-purple-600">120</h2>
+
+            <p className="text-sm text-purple-500 mt-2">
+              Active customers today
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Sales Table */}
+        <div className="bg-white rounded-2xl shadow p-6">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Sales</h2>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-gray-700">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="p-3">Order ID</th>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Product</th>
+                  <th className="p-3">Amount</th>
+                  <th className="p-3">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr className="border-b">
+                  <td className="p-3">#1001</td>
+                  <td className="p-3">Ali</td>
+                  <td className="p-3">Latte</td>
+                  <td className="p-3">RM 18</td>
+                  <td className="p-3 text-green-600 font-semibold">
+                    Completed
+                  </td>
+                </tr>
+
+                <tr className="border-b">
+                  <td className="p-3">#1002</td>
+                  <td className="p-3">Siti</td>
+                  <td className="p-3">Cappuccino</td>
+                  <td className="p-3">RM 22</td>
+                  <td className="p-3 text-yellow-600 font-semibold">Pending</td>
+                </tr>
+
+                <tr className="border-b">
+                  <td className="p-3">#1003</td>
+                  <td className="p-3">John</td>
+                  <td className="p-3">Americano</td>
+                  <td className="p-3">RM 15</td>
+                  <td className="p-3 text-green-600 font-semibold">
+                    Completed
+                  </td>
+                </tr>
+
+                <tr>
+                  <td className="p-3">#1004</td>
+                  <td className="p-3">Maryam</td>
+                  <td className="p-3">Mocha</td>
+                  <td className="p-3">RM 25</td>
+                  <td className="p-3 text-red-600 font-semibold">Cancelled</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

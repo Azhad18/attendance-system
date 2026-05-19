@@ -13,38 +13,37 @@ export default function Home() {
   const supabase = createClient();
   const router = useRouter();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  // Kita cari terus dalam table 'employee'
-  const { data, error } = await supabase
-    .from("employee")
-    .select("*")
-    .eq("email", email)
-    .eq("password", password) // Ini semak password teks biasa
-    .single(); // Kita nak satu result sahaja
+    // Kita cari terus dalam table 'employee'
+    const { data, error } = await supabase
+      .from("employee")
+      .select("*")
+      .eq("staff_email", email)
+      .eq("password", password) // Ini semak password teks biasa
+      .single(); // Kita nak satu result sahaja
 
-  if (error || !data) {
-    // Jika tak jumpa atau ada error
-    alert("Email atau Password salah!");
-    setIsLoading(false);
-  } else {
-    // Jika jumpa, maksudnya login berjaya
-    console.log("Data pekerja:", data);
-    alert(`Selamat kembali, ${data.name}!`);
-    
-    // Simpan nama dalam LocalStorage supaya senang nak guna kat page lain nanti
-    localStorage.setItem("user_name", data.name);
-    
-    router.push("/dashboard");
-  }
-};
+    if (error || !data) {
+      // Jika tak jumpa atau ada error
+      alert("Email atau Password salah!");
+      setIsLoading(false);
+    } else {
+      // Jika jumpa, maksudnya login berjaya
+      console.log("Data pekerja:", data);
+      alert(`Selamat kembali, ${data.staff_name}!`);
+
+      // Simpan nama dalam LocalStorage supaya senang nak guna kat page lain nanti
+      localStorage.setItem("id", data.id);
+
+      router.push("/dashboard");
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black p-6">
       <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800">
-        
         {/* Logo/Header Section */}
         <div className="flex flex-col items-center gap-2 text-center">
           <Image
@@ -66,8 +65,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label 
-              htmlFor="email" 
+            <label
+              htmlFor="email"
               className="text-sm font-medium leading-none text-zinc-700 dark:text-zinc-300"
             >
               Email address
@@ -106,7 +105,10 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         <div className="text-center text-sm text-zinc-500">
           Don&apos;t have an account?{" "}
-          <a href="/signup" className="font-medium text-black underline-offset-4 hover:underline dark:text-white">
+          <a
+            href="/signup"
+            className="font-medium text-black underline-offset-4 hover:underline dark:text-white"
+          >
             Sign up
           </a>
         </div>
