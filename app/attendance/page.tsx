@@ -4,13 +4,40 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+type Booking = {
+  day: string;
+  date: string;
+  time: string;
+  employeeName: string;
+  employeeId: string;
+};
+
 export default function AttendancePage() {
   const [formData, setFormData] = useState({
     employeeName: "",
     employeeId: "",
-    department: "",
-    attendanceType: "Check In",
+    day: "Monday",
+    date: "",
+    time: "",
   });
+
+  // Dummy data booking staff lain
+  const [bookings, setBookings] = useState<Booking[]>([
+    {
+      day: "Monday",
+      date: "2026-05-25",
+      time: "09:00 AM",
+      employeeName: "Ali",
+      employeeId: "EMP001",
+    },
+    {
+      day: "Tuesday",
+      date: "2026-05-26",
+      time: "02:00 PM",
+      employeeName: "Siti",
+      employeeId: "EMP002",
+    },
+  ]);
 
   const [submitted, setSubmitted] = useState(false);
 
@@ -26,7 +53,26 @@ export default function AttendancePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("Attendance Submitted:", formData);
+    // Check kalau slot dah diambil
+    const alreadyBooked = bookings.find(
+      (booking) =>
+        booking.date === formData.date && booking.time === formData.time,
+    );
+
+    if (alreadyBooked) {
+      alert("This slot has already been booked!");
+      return;
+    }
+
+    const newBooking: Booking = {
+      day: formData.day,
+      date: formData.date,
+      time: formData.time,
+      employeeName: formData.employeeName,
+      employeeId: formData.employeeId,
+    };
+
+    setBookings([...bookings, newBooking]);
 
     setSubmitted(true);
 
@@ -37,8 +83,9 @@ export default function AttendancePage() {
     setFormData({
       employeeName: "",
       employeeId: "",
-      department: "",
-      attendanceType: "Check In",
+      day: "Monday",
+      date: "",
+      time: "",
     });
   };
 
@@ -56,6 +103,7 @@ export default function AttendancePage() {
             priority
           />
         </div>
+
         <ul className="space-y-4 mt-10">
           <li>
             <Link href="/dashboard" className="hover:text-gray-300">
@@ -65,76 +113,142 @@ export default function AttendancePage() {
 
           <li>
             <Link href="/attendance" className="hover:text-gray-300">
-              Attendance
+              Book Schedule
             </Link>
           </li>
         </ul>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center bg-gray-100 p-8">
-        <div className="w-full max-w-xl bg-white rounded-2xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
-            Attendance
-          </h1>
+      {/* Timetable UI */}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-gray-700">Employee Name</label>
-              <input
-                type="text"
-                name="employeeName"
-                value={formData.employeeName}
-                onChange={handleChange}
-                className="mt-1 p-3 w-full border rounded-xl text-gray-700"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700">Employee ID</label>
-              <input
-                type="text"
-                name="employeeId"
-                value={formData.employeeId}
-                onChange={handleChange}
-                className="mt-1 p-3 w-full border rounded-xl text-gray-700"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700">Department</label>
-              <input
-                type="text"
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className="mt-1 p-3 w-full border rounded-xl text-gray-700"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-gray-700">Attendance Type</label>
-              <select
-                name="attendanceType"
-                value={formData.attendanceType}
-                onChange={handleChange}
-                className="mt-1 p-3 w-full border rounded-xl text-gray-700"
-              >
-                <option value="Check In">Check In</option>
-                <option value="Check Out">Check Out</option>
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 transition"
-            >
-              Submit Attendance
+      <div className="flex-1 p-8 relative bg-gray-100">
+        <div className="flex justify-end mb-6 relative">
+          <Link href="/scheduling">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+              <span className="text-lg font-bold">+</span>
+              Add Booking
             </button>
-          </form>
+          </Link>
+        </div>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border border-sky-300">
+            <thead>
+              <tr className="bg-sky-100 text-sky-700">
+                <th className="border border-sky-300 p-3 w-32">Day / Time</th>
+
+                <th className="border border-sky-300 p-3">8AM - 10AM</th>
+
+                <th className="border border-sky-300 p-3">10AM - 12PM</th>
+
+                <th className="border border-sky-300 p-3">12PM - 2PM</th>
+
+                <th className="border border-sky-300 p-3">2PM - 4PM</th>
+
+                <th className="border border-sky-300 p-3">4PM - 6PM</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {/* Monday */}
+              <tr className="h-28">
+                <td className="border border-sky-300 bg-sky-50 font-bold text-sky-700 text-center">
+                  MONDAY
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                {/* Booked Slot */}
+                <td className="border border-sky-300 bg-red-200 text-center">
+                  <p className="font-bold text-red-700">BOOKED</p>
+                  <p className="text-sm text-gray-700">Ali</p>
+                  <p className="text-xs text-gray-500">EMP001</p>
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+              </tr>
+
+              {/* Tuesday */}
+              <tr className="h-28">
+                <td className="border border-sky-300 bg-sky-50 font-bold text-sky-700 text-center">
+                  TUESDAY
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300 bg-green-200 text-center">
+                  <p className="font-bold text-green-700">BOOKED</p>
+                  <p className="text-sm text-gray-700">Siti</p>
+                  <p className="text-xs text-gray-500">EMP002</p>
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+              </tr>
+
+              {/* Wednesday */}
+              <tr className="h-28">
+                <td className="border border-sky-300 bg-sky-50 font-bold text-sky-700 text-center">
+                  WEDNESDAY
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+              </tr>
+
+              {/* Thursday */}
+              <tr className="h-28">
+                <td className="border border-sky-300 bg-sky-50 font-bold text-sky-700 text-center">
+                  THURSDAY
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300 bg-yellow-200 text-center">
+                  <p className="font-bold text-yellow-700">BOOKED</p>
+                  <p className="text-sm text-gray-700">John</p>
+                  <p className="text-xs text-gray-500">EMP003</p>
+                </td>
+
+                <td className="border border-sky-300"></td>
+              </tr>
+
+              {/* Friday */}
+              <tr className="h-28">
+                <td className="border border-sky-300 bg-sky-50 font-bold text-sky-700 text-center">
+                  FRIDAY
+                </td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+
+                <td className="border border-sky-300"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

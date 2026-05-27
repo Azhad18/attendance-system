@@ -67,7 +67,7 @@ export default function Page() {
 
           <li>
             <Link href="/attendance" className="hover:text-gray-300">
-              Attendance
+              Book Schedule
             </Link>
           </li>
         </ul>
