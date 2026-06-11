@@ -96,7 +96,13 @@ export default function AttendancePage() {
     return d;
   };
 
-  const toDateStr = (d: Date) => d.toISOString().split("T")[0];
+  const toDateStr = (d: Date) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
 
   const getWeekRange = (offset: number) => {
     const { sunday, saturday } = getWeekDates(offset);
@@ -144,6 +150,7 @@ export default function AttendancePage() {
 
   const handleCellClick = (day: string, dayIndex: number, shift: number) => {
     const date = getDayDate(dayIndex, weekOffset);
+
     setSelectedCell({ day, dayIndex, shift, dateStr: toDateStr(date) });
   };
 
@@ -151,7 +158,9 @@ export default function AttendancePage() {
     if (!selectedCell || !employee) return;
     setActionLoading(true);
 
-    console.log(selectedCell)
+    console.log("selectedcell",selectedCell)
+    console.log(selectedCell.dateStr);
+console.log(selectedCell.day);
 
     // Check limit
     const { data: existing, error: checkErr } = await supabase
@@ -160,6 +169,7 @@ export default function AttendancePage() {
       .eq("schedule_date", selectedCell.dateStr)
       .eq("schedule_shift", shiftToTime[selectedCell.shift]);
 
+    
     if (checkErr) { setActionLoading(false); return; }
     if ((existing ?? []).length >= 2) {
       alert("This slot is already full.");
@@ -172,11 +182,13 @@ export default function AttendancePage() {
       return;
     }
 
-    const { error } = await supabase.from("bookSchedule").insert([{
+    const { data:book, error } = await supabase.from("bookSchedule").insert([{
       staff_id: employee.id,
       schedule_date: selectedCell.dateStr,
       schedule_shift: shiftToTime[selectedCell.shift],
     }]);
+
+    console.log(book)
 
     setActionLoading(false);
     if (!error) {
