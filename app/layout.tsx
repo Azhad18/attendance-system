@@ -17,6 +17,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Amber Coffee – Staff Portal",
   description: "Manage your shifts, view the weekly timetable, and book your schedule.",
+  icons: {
+    icon: "/logo_amber.png",
+    apple: "/logo_amber.png",
+  },
+  openGraph: {
+    title: "Amber Coffee – Staff Portal",
+    description: "Manage your shifts, view the weekly timetable, and book your schedule.",
+    images: [{ url: "/logo_amber.png" }],
+  },
 };
 
 export default function RootLayout({
